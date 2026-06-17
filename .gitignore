@@ -1,0 +1,5 @@
+*.o
+aht_blockchain
+chain_state.dat
+*.swp
+.vscode/
