@@ -243,7 +243,11 @@ static void cmd_submit_claim(ChainState *state, char *args) {
                                   amount, TX_CLAIM_SUBMISSION, 2.0);
 
     int suspicious = fraud_check(state, &tx, pol->member_id, provider_id, amount);
-    if (mempool_add(state, &tx, 2.0) == 0 && suspicious) {
+    if (mempool_add(state, &tx, 2.0) != 0) {
+        printf("Claim %s rejected: transaction failed validation.\n", claim_id);
+        return;
+    }
+    if (suspicious) {
         MempoolEntry *e = mempool_find(state, tx.transaction_id);
         if (e) e->status = MEMPOOL_SUSPICIOUS;
     }
@@ -278,7 +282,11 @@ static void cmd_approve_claim(ChainState *state, char *args) {
     Transaction tx;
     create_and_sign_transaction(state, &tx, INSURANCE_POOL_ADDR, SYSTEM_ADDR,
                                   c->amount, TX_CLAIM_APPROVAL, 1.0);
-    mempool_add(state, &tx, 1.0);
+    if (mempool_add(state, &tx, 1.0) != 0) {
+        c->approved = 0;
+        printf("Claim %s approval failed: could not queue transaction.\n", claim_id);
+        return;
+    }
     printf("Claim %s approved.\n", claim_id);
 }
 

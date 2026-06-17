@@ -35,6 +35,9 @@ int compute_merkle_root(Transaction *transactions, int count, char *root_out, si
         return -1;
     }
 
+    char *buf1 = level;
+    char *buf2 = next;
+
     while (level_count > 1) {
         int next_count = 0;
         int pairs = level_count / 2;
@@ -65,8 +68,8 @@ int compute_merkle_root(Transaction *transactions, int count, char *root_out, si
 
     strncpy(root_out, current, root_size - 1);
     root_out[root_size - 1] = '\0';
-    free(level);
-    free(next);
+    free(buf1);
+    free(buf2);
     return 0;
 }
 

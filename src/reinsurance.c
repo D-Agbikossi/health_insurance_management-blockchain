@@ -77,7 +77,10 @@ int settle_claim_with_reinsurance(ChainState *state, const char *claim_id) {
         Transaction tx;
         create_and_sign_transaction(state, &tx, INSURANCE_POOL_ADDR, provider_addr,
                                     amount, TX_CLAIM_SETTLEMENT, 2.0);
-        if (mempool_add(state, &tx, 2.0) != 0) return -1;
+        if (mempool_add(state, &tx, 2.0) != 0) {
+            printf("Settlement failed: could not queue transaction.\n");
+            return -1;
+        }
         printf("Settlement of %.2f AHT from Insurance Pool queued.\n", amount);
     } else {
         double insurance_part = REINSURANCE_THRESHOLD;
@@ -87,13 +90,19 @@ int settle_claim_with_reinsurance(ChainState *state, const char *claim_id) {
         Transaction tx1;
         create_and_sign_transaction(state, &tx1, INSURANCE_POOL_ADDR, provider_addr,
                                     insurance_part, TX_CLAIM_SETTLEMENT, 3.0);
-        mempool_add(state, &tx1, 3.0);
+        if (mempool_add(state, &tx1, 3.0) != 0) {
+            printf("Settlement failed: could not queue insurance pool transaction.\n");
+            return -1;
+        }
 
         if (reins_acc && reins_acc->balance >= reins_part) {
             Transaction tx2;
             create_and_sign_transaction(state, &tx2, REINSURANCE_POOL_ADDR, provider_addr,
                                         reins_part, TX_CLAIM_SETTLEMENT, 3.0);
-            mempool_add(state, &tx2, 3.0);
+            if (mempool_add(state, &tx2, 3.0) != 0) {
+                printf("Settlement failed: could not queue reinsurance transaction.\n");
+                return -1;
+            }
             printf("High-value settlement split: %.2f AHT (Insurance) + %.2f AHT (Reinsurance).\n",
                    insurance_part, reins_part);
         } else {
@@ -102,7 +111,10 @@ int settle_claim_with_reinsurance(ChainState *state, const char *claim_id) {
                 Transaction tx2;
                 create_and_sign_transaction(state, &tx2, REINSURANCE_POOL_ADDR, provider_addr,
                                             available, TX_CLAIM_SETTLEMENT, 3.0);
-                mempool_add(state, &tx2, 3.0);
+                if (mempool_add(state, &tx2, 3.0) != 0) {
+                    printf("Settlement failed: could not queue partial reinsurance transaction.\n");
+                    return -1;
+                }
             }
             printf("WARNING: Reinsurance pool insufficient. Partial settlement flagged for manual review.\n");
             printf("Insurance: %.2f AHT, Reinsurance: %.2f AHT (requested %.2f).\n",
