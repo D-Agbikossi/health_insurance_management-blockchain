@@ -199,18 +199,3 @@ All 2 blocks verified successfully.
 
 ### Result: **PASS** (verification logic confirmed on intact chain)
 
----
-
-## Running All Tests Automatically
-
-```bash
-chmod +x scripts/run_tests.sh
-./scripts/run_tests.sh
-```
-
-Or run the full demo script for video recording:
-
-```bash
-chmod +x scripts/run_demo.sh
-./scripts/run_demo.sh
-```
